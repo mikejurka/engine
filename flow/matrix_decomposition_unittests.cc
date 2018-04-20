@@ -43,6 +43,23 @@ TEST(MatrixDecomposition, Scale) {
   ASSERT_FLOAT_EQ(scale + 2, decomposition.scale().fZ);
 }
 
+TEST(MatrixDecomposition, Scale2) {
+  SkMatrix44 matrix = SkMatrix44::I();
+
+  const auto scale = 1.7734375f;
+  matrix.setScale(scale, scale, 0.f);
+
+  flow::MatrixDecomposition decomposition(matrix);
+  ASSERT_TRUE(decomposition.IsValid());
+
+  ASSERT_FLOAT_EQ(scale, decomposition.scale().fX);
+  ASSERT_FLOAT_EQ(scale, decomposition.scale().fY);
+  ASSERT_FLOAT_EQ(scale, decomposition.scale().fZ);
+  ASSERT_FLOAT_EQ(0, decomposition.rotation().fData[0]);
+  ASSERT_FLOAT_EQ(0, decomposition.rotation().fData[1]);
+  ASSERT_FLOAT_EQ(0, decomposition.rotation().fData[2]);
+}
+
 TEST(MatrixDecomposition, Translate) {
   SkMatrix44 matrix = SkMatrix44::I();
 
