@@ -67,7 +67,7 @@ class SceneUpdateContext {
 
    private:
     SceneUpdateContext& context_;
-    Entity* const previous_entity_;
+    scenic::ContainerNode* const previous_node_;
 
     scenic::EntityNode entity_node_;
   };
@@ -78,6 +78,15 @@ class SceneUpdateContext {
          scenic::Shape& shape,
          const SkRect& shape_bounds);
     ~Clip();
+  };
+
+  class Opacity : public Entity {
+   public:
+    Opacity(SceneUpdateContext& context, float opacity);
+    ~Opacity();
+
+   private:
+    float const previous_opacity_;
   };
 
   class Transform : public Entity {
@@ -176,9 +185,10 @@ class SceneUpdateContext {
                                        const SkRect& paint_bounds,
                                        std::vector<Layer*> paint_layers);
 
-  Entity* top_entity_ = nullptr;
+  scenic::ContainerNode* top_node_ = nullptr;
   float top_scale_x_ = 1.f;
   float top_scale_y_ = 1.f;
+  float top_opacity_ = 1.f;
 
   scenic::Session* const session_;
   SurfaceProducer* const surface_producer_;

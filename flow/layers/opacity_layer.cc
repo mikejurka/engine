@@ -21,4 +21,15 @@ void OpacityLayer::Paint(PaintContext& context) const {
   PaintChildren(context);
 }
 
+#if defined(OS_FUCHSIA)
+
+void OpacityLayer::UpdateScene(SceneUpdateContext& context) {
+  FML_DCHECK(needs_system_composite());
+
+  SceneUpdateContext::Opacity opacity(context, alpha_);
+  UpdateSceneChildren(context);
+}
+
+#endif  // defined(OS_FUCHSIA)
+
 }  // namespace flow

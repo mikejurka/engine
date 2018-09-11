@@ -27,9 +27,9 @@ SceneUpdateContext::~SceneUpdateContext() {
 void SceneUpdateContext::AddChildScene(ExportNode* export_node,
                                        SkPoint offset,
                                        bool hit_testable) {
-  FML_DCHECK(top_entity_);
+  FML_DCHECK(top_node_);
 
-  export_node->Bind(*this, top_entity_->entity_node(), offset, hit_testable);
+  export_node->Bind(*this, *top_node_, offset, hit_testable);
 }
 
 void SceneUpdateContext::AddExportNode(ExportNode* export_node) {
@@ -209,16 +209,25 @@ SceneUpdateContext::ExecutePaintTasks(CompositorContext::ScopedFrame& frame) {
 
 SceneUpdateContext::Entity::Entity(SceneUpdateContext& context)
     : context_(context),
-      previous_entity_(context.top_entity_),
+      previous_node_(context.top_node_),
       entity_node_(context.session()) {
-  if (previous_entity_)
-    previous_entity_->entity_node_.AddChild(entity_node_);
-  context.top_entity_ = this;
+  if (previous_node_)
+    previous_node_->AddChild(entity_node_);
+  context.top_node_ = &entity_node();
 }
 
 SceneUpdateContext::Entity::~Entity() {
-  FML_DCHECK(context_.top_entity_ == this);
-  context_.top_entity_ = previous_entity_;
+  FML_DCHECK(context_.top_node_ == &entity_node_);
+  context_.top_node_ = previous_node_;
+}
+
+SceneUpdateContext::Opacity::Opacity(SceneUpdateContext& context, float opacity)
+    : Entity(context), previous_opacity_(context.top_opacity_) {
+  context.top_opacity_ = opacity;
+}
+
+SceneUpdateContext::Opacity::~Opacity() {
+  context().top_opacity_ = previous_opacity_;
 }
 
 SceneUpdateContext::Clip::Clip(SceneUpdateContext& context,
