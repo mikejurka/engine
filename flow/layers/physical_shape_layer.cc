@@ -17,7 +17,11 @@ PhysicalShapeLayer::PhysicalShapeLayer(SkColor color,
                                        float elevation,
                                        const SkPath& path,
                                        Clip clip_behavior)
+#if !defined(OS_FUCHSIA)
     : PhysicalShapeLayerBase(color, elevation),
+#else
+    : PhysicalShapeLayerBase(color, /*opacity=*/1.f, elevation),
+#endif
       shadow_color_(shadow_color),
       path_(path),
       isRect_(false),
@@ -92,8 +96,9 @@ void PhysicalShapeLayer::UpdateScene(SceneUpdateContext& context) {
 
   TRACE_EVENT_INSTANT0("flutter", "cache miss, creating");
   // If we can't find an existing retained surface, create one.
-  SceneUpdateContext::Frame frame(context, frameRRect_, color(), elevation(),
+  SceneUpdateContext::Frame frame(context, frameRRect_, color(), opacity(), elevation(),
                                   this);
+
   for (auto& layer : layers()) {
     if (layer->needs_painting()) {
       frame.AddPaintLayer(layer.get());
