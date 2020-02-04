@@ -42,6 +42,7 @@ class PhysicalShapeLayer : public ContainerLayer {
   float total_elevation() const { return total_elevation_; }
 
  private:
+  bool children_need_system_compositing_;
   SkColor color_;
   SkColor shadow_color_;
   float elevation_ = 0.0f;

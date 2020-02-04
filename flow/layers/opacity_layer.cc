@@ -123,6 +123,9 @@ void OpacityLayer::Paint(PaintContext& context) const {
 #if defined(OS_FUCHSIA)
 
 void OpacityLayer::UpdateScene(SceneUpdateContext& context) {
+  // TODO: be better about updating PhysicalShapeLayer, so we know if we need to
+  // do a system composite.
+  // TODO: Move all this to child_scene_layer actually.
   FML_DCHECK(needs_system_composite());
   TRACE_EVENT0("flutter", "OpacityLayer::UpdateScene");
 

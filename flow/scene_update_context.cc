@@ -72,14 +72,15 @@ void SceneUpdateContext::CreateFrame(scenic::EntityNode entity_node,
   // and possibly for its texture.
   // TODO(SCN-137): Need to be able to express the radii as vectors.
   scenic::ShapeNode shape_node(session());
+  // probably want to make this a rect:
   scenic::RoundedRectangle shape(
       session_,                                      // session
       rrect.width(),                                 // width
       rrect.height(),                                // height
-      rrect.radii(SkRRect::kUpperLeft_Corner).x(),   // top_left_radius
-      rrect.radii(SkRRect::kUpperRight_Corner).x(),  // top_right_radius
-      rrect.radii(SkRRect::kLowerRight_Corner).x(),  // bottom_right_radius
-      rrect.radii(SkRRect::kLowerLeft_Corner).x()    // bottom_left_radius
+      0.f,//rrect.radii(SkRRect::kUpperLeft_Corner).x(),   // top_left_radius
+      0.f,//rrect.radii(SkRRect::kUpperRight_Corner).x(),  // top_right_radius
+      0.f,//rrect.radii(SkRRect::kLowerRight_Corner).x(),  // bottom_right_radius
+      0.f//rrect.radii(SkRRect::kLowerLeft_Corner).x()    // bottom_left_radius
   );
   shape_node.SetShape(shape);
   shape_node.SetTranslation(shape_bounds.width() * 0.5f + shape_bounds.left(),
@@ -96,7 +97,8 @@ void SceneUpdateContext::CreateFrame(scenic::EntityNode entity_node,
 
   // Check whether a solid color will suffice.
   if (paint_layers.empty()) {
-    SetMaterialColor(material, color, opacity);
+    //SetMaterialColor(material, color, opacity);
+    SetMaterialColor(material, SK_ColorRED, opacity);
   } else {
     // Apply current metrics and transformation scale factors.
     const float scale_x = ScaleX();
@@ -132,7 +134,8 @@ void SceneUpdateContext::SetMaterialTextureAndColor(
     material.SetTexture(*image);
   } else {
     // No texture was needed, so apply a solid color to the whole shape.
-    SetMaterialColor(material, color, opacity);
+    SetMaterialColor(material, SK_ColorRED, opacity);
+    //SetMaterialColor(material, color, opacity);
   }
 }
 
@@ -222,6 +225,8 @@ SceneUpdateContext::ExecutePaintTasks(CompositorContext::ScopedFrame& frame) {
     surfaces_to_submit.emplace_back(std::move(task.surface));
   }
   paint_tasks_.clear();
+  child_scene_layer_exists_below_ = false;
+  scenic_elevation_ = 0.f;
   return surfaces_to_submit;
 }
 
@@ -251,7 +256,7 @@ SceneUpdateContext::Transform::Transform(SceneUpdateContext& context,
     if (decomposition.IsValid()) {
       entity_node().SetTranslation(decomposition.translation().x(),  //
                                    decomposition.translation().y(),  //
-                                   -decomposition.translation().z()  //
+                                   0.f //
       );
 
       entity_node().SetScale(decomposition.scale().x(),  //
@@ -315,11 +320,13 @@ SceneUpdateContext::Frame::Frame(SceneUpdateContext& context,
     const float parent_elevation = world_elevation - local_elevation;
     local_elevation = depth - parent_elevation;
   }
-  if (local_elevation != 0.0) {
-    entity_node().SetTranslation(0.f, 0.f, -local_elevation);
-  }
+  //if (local_elevation != 0.0) {
+  //  entity_node().SetTranslation(0.f, 0.f, -local_elevation);
+  //}
+  entity_node().SetTranslation(0.f, 0.f, -context.scenic_elevation_);
+  context.scenic_elevation_ += 1;
   entity_node().AddChild(opacity_node_);
-  opacity_node_.SetOpacity(opacity_ / 255.0f);
+  opacity_node_.SetOpacity(std::min(0.99f, opacity_ / 255.0f));
 }
 
 SceneUpdateContext::Frame::~Frame() {

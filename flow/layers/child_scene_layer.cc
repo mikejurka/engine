@@ -49,6 +49,12 @@ void ChildSceneLayer::UpdateScene(SceneUpdateContext& context) {
   auto* view_holder = ViewHolder::FromId(layer_id_);
   FML_DCHECK(view_holder);
 
+  // TODO: create an opacity node here if our alpha != 1. Then remove
+  // the extra logic in opacity_layer.cc
+  context.child_scene_layer_exists_below_ = true;
+FML_LOG(INFO) << "CHILD SCENE LAYER EXISTS BELOW!!!";
+  // TODO: move this to preroll
+
   view_holder->UpdateScene(context, offset_, size_, hit_testable_);
 }
 
