@@ -180,6 +180,10 @@ class SceneUpdateContext {
     return surface_producer_->GetRetainedNode(key);
   }
 
+  // Informs whether a layer needs to be system composited.
+  bool child_scene_layer_exists_below_ = false;
+  float scenic_elevation_ = 0.f;
+
  private:
   struct PaintTask {
     std::unique_ptr<SurfaceProducerSurface> surface;
