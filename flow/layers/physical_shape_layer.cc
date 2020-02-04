@@ -56,27 +56,36 @@ void PhysicalShapeLayer::Preroll(PrerollContext* context,
   PrerollChildren(context, matrix, &child_paint_bounds);
   context->total_elevation -= elevation_;
 
+#if defined(OS_FUCHSIA)
+  set_needs_system_composite(true);
+#endif
+
   if (elevation_ == 0) {
     set_paint_bounds(path_.getBounds());
   } else {
-#if defined(OS_FUCHSIA)
-    // Let the system compositor draw all shadows for us.
-    set_needs_system_composite(true);
-#else
+
     // We will draw the shadow in Paint(), so add some margin to the paint
     // bounds to leave space for the shadow. We fill this whole region and clip
     // children to it so we don't need to join the child paint bounds.
     set_paint_bounds(ComputeShadowBounds(path_.getBounds(), elevation_,
                                          context->frame_device_pixel_ratio));
-#endif  // defined(OS_FUCHSIA)
   }
 }
 
 #if defined(OS_FUCHSIA)
 
 void PhysicalShapeLayer::UpdateScene(SceneUpdateContext& context) {
-  FML_DCHECK(needs_system_composite());
+  // FML_DCHECK(needs_system_composite());
+  // Let the system compositor draw all shadows for us.
+
   TRACE_EVENT0("flutter", "PhysicalShapeLayer::UpdateScene");
+
+  bool child_scene_layer_exists_below =
+      context.child_scene_layer_exists_below_;
+  if (!child_scene_layer_exists_below) {
+    set_needs_system_composite(false);
+    return;
+  }
 
   // Retained rendering: speedup by reusing a retained entity node if possible.
   // When an entity node is reused, no paint layer is added to the frame so we
@@ -95,13 +104,16 @@ void PhysicalShapeLayer::UpdateScene(SceneUpdateContext& context) {
   // If we can't find an existing retained surface, create one.
   SceneUpdateContext::Frame frame(context, frameRRect_, color_, SK_AlphaOPAQUE,
                                   elevation_, total_elevation_, this);
-  for (auto& layer : layers()) {
-    if (layer->needs_painting()) {
-      frame.AddPaintLayer(layer.get());
-    }
-  }
 
+  frame.AddPaintLayer(this);
+  // for (auto& layer : layers()) {
+  //   if (layer->needs_painting()) {
+  //     frame.AddPaintLayer(layer.get());
+  //   }
+  // }
+  context.child_scene_layer_exists_below_ = false;
   UpdateSceneChildren(context);
+  context.child_scene_layer_exists_below_ = child_scene_layer_exists_below;
 }
 
 #endif  // defined(OS_FUCHSIA)
