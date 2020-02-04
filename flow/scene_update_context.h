@@ -180,6 +180,8 @@ class SceneUpdateContext {
     return surface_producer_->GetRetainedNode(key);
   }
 
+  float scenic_elevation_ = 0.f;
+
  private:
   struct PaintTask {
     std::unique_ptr<SurfaceProducerSurface> surface;

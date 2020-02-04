@@ -222,6 +222,7 @@ SceneUpdateContext::ExecutePaintTasks(CompositorContext::ScopedFrame& frame) {
     surfaces_to_submit.emplace_back(std::move(task.surface));
   }
   paint_tasks_.clear();
+  scenic_elevation_ = 0.f;
   return surfaces_to_submit;
 }
 
@@ -251,7 +252,7 @@ SceneUpdateContext::Transform::Transform(SceneUpdateContext& context,
     if (decomposition.IsValid()) {
       entity_node().SetTranslation(decomposition.translation().x(),  //
                                    decomposition.translation().y(),  //
-                                   -decomposition.translation().z()  //
+                                   0.f //
       );
 
       entity_node().SetScale(decomposition.scale().x(),  //
@@ -315,9 +316,11 @@ SceneUpdateContext::Frame::Frame(SceneUpdateContext& context,
     const float parent_elevation = world_elevation - local_elevation;
     local_elevation = depth - parent_elevation;
   }
-  if (local_elevation != 0.0) {
-    entity_node().SetTranslation(0.f, 0.f, -local_elevation);
-  }
+  //if (local_elevation != 0.0) {
+  //  entity_node().SetTranslation(0.f, 0.f, -local_elevation);
+  //}
+  entity_node().SetTranslation(0.f, 0.f, -context.scenic_elevation_);
+  context.scenic_elevation_ += 1;
   entity_node().AddChild(opacity_node_);
   opacity_node_.SetOpacity(opacity_ / 255.0f);
 }
